@@ -1,0 +1,26 @@
+{
+  "name": "breadroll",
+  "version": "1.0.0",
+  "description": "Scroll related utilities. Part of the bakeshop",
+  "main": "bakeshop.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lowebdev/scrollipop.git"
+  },
+  "keywords": [
+    "bake",
+    "shop",
+    "bakeshop",
+    "scroll",
+    "utilities"
+  ],
+  "author": "Olivier Lepage",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lowebdev/scrollipop/issues"
+  },
+  "homepage": "https://github.com/lowebdev/scrollipop#readme"
+}
