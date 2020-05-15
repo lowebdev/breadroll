@@ -4,9 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+      body {
+        height: 300vh;
+        background-color: white;
+      }
+    </style>
   </head>
   <body>
     
   </body>
-  <script src="./breadroll.js"></script>
+  <script src="./breadroll.js" type="text/javascript" charset="utf-8"></script>
+  <script src="./main.js" type="text/javascript" charset="utf-8"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('ok sec')
+      br = new Breadroll()
+      // console.log(br)
+      br.addScrollListener('toggleRedBg', () => {
+        document.body.style.backgroundColor = document.body.style.backgroundColor === 'red' ? 'white' : 'red'
+      })
+    })
+  </script>
 </html>
