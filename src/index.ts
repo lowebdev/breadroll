@@ -9,6 +9,10 @@ export class Breadroll {
     isRunningScrollListeners: false
   }
 
+  private ON_ENTER_VIEWPORT_EVENT_NAME = 'enterviewport'
+  private onEnterViewportEvent = new CustomEvent(this.ON_ENTER_VIEWPORT_EVENT_NAME)
+  private onEnterViewportListeners: Dictionary<HTMLElement[]> = {}
+
   private interval: number
   onScrollListeners: Dictionary<(e: Event) => void> = {}
   scrollDirection: number // down == < 0, up == > 0
@@ -23,9 +27,8 @@ export class Breadroll {
         window.requestAnimationFrame(() => {
           this.scrollDirection = window.scrollY - scrollY
           this.scrollY = window.scrollY
-            this.triggerOnScrollListeners()
-          
-          // executeEnterViewportActions()
+          this.triggerOnScrollListeners()
+          this.emitEnterViewportEvent()
   
           this.state.isTicking = false
         })
@@ -81,7 +84,35 @@ export class Breadroll {
     console.log(this.onScrollListeners)
   }
 
-  triggerOnScrollListeners = this.throttle(function (e: Event) {
+  // When the element enters bottom quarter of the viewport, add style
+  public addStyleOnEnterViewport (el: HTMLElement, styleObj: any, baseTransitionDelayMS: number = 50) {
+    const enterActionAt = el.getBoundingClientRect().top
+
+    const enterViewportAction = () => {
+      for (const propName in styleObj) {
+        el.style.setProperty(propName, styleObj[propName])
+      }
+
+      el.removeEventListener(this.ON_ENTER_VIEWPORT_EVENT_NAME, enterViewportAction)
+    }
+
+    // Handle with custom event listeners!
+    if (el.getBoundingClientRect().top < window.innerHeight) {
+      enterViewportAction()
+      return
+    }
+
+    if (this.onEnterViewportListeners[enterActionAt]) {
+      this.onEnterViewportListeners[enterActionAt].push(el)
+      el.style.transitionDelay = `${(this.onEnterViewportListeners[enterActionAt].length - 1) * baseTransitionDelayMS}ms`
+    } else {
+      this.onEnterViewportListeners[enterActionAt] = [el]
+    }
+
+    el.addEventListener(this.ON_ENTER_VIEWPORT_EVENT_NAME, enterViewportAction)
+  }
+
+  private triggerOnScrollListeners = this.throttle(function (e: Event) {
     if (!this.state.isRunningScrollListeners) {
       this.state.isRunningScrollListeners = true
       console.log('running listeners')
@@ -92,4 +123,43 @@ export class Breadroll {
       this.state.isRunningScrollListeners = false
     }
   }, this.interval)
+
+  // Need to check performances vs class obj
+  private emitEnterViewportEvent = this.throttle(function () {
+
+    const nextKey = +Object.keys(this.onEnterViewportListeners).find((enterViewportKey) => {
+      return (window.innerHeight * 0.75) + window.scrollY - +enterViewportKey > 0
+    })
+
+    if (!nextKey) { return }
+
+    const nextEnterViewportListeners: HTMLElement[] = this.onEnterViewportListeners[nextKey]
+    for (let i = 0; i < nextEnterViewportListeners.length; i++) {
+      nextEnterViewportListeners[i].dispatchEvent(this.onEnterViewportEvent)
+    }
+
+    delete this.onEnterViewportListeners[nextKey]
+  }, this.interval)
+
+  // Need to check performances vs class obj
+  public styleOnImageLoaded(styleObj: any) {
+    const imgs = document.querySelectorAll('img')
+    const onLoad = (img: HTMLImageElement) => {
+      for (const key in styleObj) {
+        img.style.setProperty(key, styleObj[key])
+      }
+    }
+
+    for (let i = 0; i < imgs.length; i++) {
+      const img = imgs[i];
+
+      if (img.complete) {
+        onLoad(img)
+      } else {
+        img.addEventListener('load', () => {
+          onLoad(img)
+        })
+      }
+    }
+  }
 }
